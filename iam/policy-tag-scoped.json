@@ -1,0 +1,64 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyDestructiveActionsOnUntaggedResources",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:TerminateInstances",
+        "ec2:StopInstances",
+        "ec2:RebootInstances",
+        "ec2:DeleteVpc",
+        "ec2:DeleteSubnet",
+        "ec2:DeleteInternetGateway",
+        "ec2:DetachInternetGateway",
+        "ec2:DeleteRouteTable",
+        "ec2:DeleteRoute",
+        "ec2:ReplaceRoute",
+        "ec2:DeleteSecurityGroup",
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:RevokeSecurityGroupIngress",
+        "ec2:DeleteVolume"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:ResourceTag/Project": "aws-vpc-web-infra"
+        }
+      }
+    },
+    {
+      "Sid": "DenyCreateVpcWithoutProjectTag",
+      "Effect": "Deny",
+      "Action": "ec2:CreateVpc",
+      "Resource": "arn:aws:ec2:ap-northeast-2:*:vpc/*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestTag/Project": "aws-vpc-web-infra"
+        }
+      }
+    },
+    {
+      "Sid": "DenyCreateSecurityGroupWithoutProjectTag",
+      "Effect": "Deny",
+      "Action": "ec2:CreateSecurityGroup",
+      "Resource": "arn:aws:ec2:ap-northeast-2:*:security-group/*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestTag/Project": "aws-vpc-web-infra"
+        }
+      }
+    },
+    {
+      "Sid": "DenyRunInstancesWithoutProjectTag",
+      "Effect": "Deny",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:ap-northeast-2:*:instance/*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestTag/Project": "aws-vpc-web-infra"
+        }
+      }
+    }
+  ]
+}
