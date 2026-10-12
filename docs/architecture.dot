@@ -1,0 +1,49 @@
+// docs/architecture.png 원본. 재생성: dot -Tpng -Gdpi=150 docs/architecture.dot -o docs/architecture.png
+digraph aws {
+  graph [rankdir=LR, fontname="Noto Sans CJK KR", fontsize=13, bgcolor="white", pad=0.4, nodesep=0.45, ranksep=0.7, newrank=true,
+         label=<<b>aws-vpc-web-infra</b> — 외부 사용자 → Internet Gateway → Public Subnet → EC2(Nginx) 트래픽 흐름<br/><font point-size="11" color="#555555">서울 리전 ap-northeast-2 · 모든 리소스 태그 Project=aws-vpc-web-infra</font>>,
+         labelloc=t];
+  node  [fontname="Noto Sans CJK KR", fontsize=11, shape=box, style="rounded,filled", fillcolor="#ffffff", color="#5b6770", penwidth=1.2];
+  edge  [fontname="Noto Sans CJK KR", fontsize=10, color="#5b6770", penwidth=1.3];
+
+  user   [label=<<b>사용자 브라우저 / curl</b><br/>어디서나 (0.0.0.0/0)>, fillcolor="#eef2f7"];
+  me     [label=<<b>학습자 PC</b><br/>내 공인 IP x.x.x.x/32>, fillcolor="#eef2f7"];
+  inet   [label=<<b>Internet</b>>, shape=ellipse, fillcolor="#f5f5f5"];
+
+  subgraph cluster_region {
+    label=<<b>AWS Region: ap-northeast-2 (Seoul)</b>>; style="rounded"; color="#9aa5b1"; fontsize=12;
+
+    subgraph cluster_vpc {
+      label=<<b>VPC</b>  10.0.0.0/16>; style="rounded,filled"; fillcolor="#f3f8ff"; color="#3b82c4"; penwidth=1.6;
+
+      igw [label=<<b>Internet Gateway</b><br/>awsweb-igw<br/><font point-size="9">VPC ↔ 인터넷 관문</font>>, fillcolor="#fff4e5", color="#d9822b"];
+      rt  [label=<<b>Route Table</b> awsweb-public-rt<br/><font face="monospace" point-size="10">10.0.0.0/16 → local<br/>0.0.0.0/0 → igw</font>>, fillcolor="#fffbe6", color="#b7950b"];
+
+      subgraph cluster_subnet {
+        label=<<b>Public Subnet</b>  10.0.1.0/24  (ap-northeast-2a)<br/><font point-size="10">퍼블릭 IP 자동 할당</font>>; style="rounded,filled"; fillcolor="#eaf7ee"; color="#2f9e57"; penwidth=1.6;
+
+        subgraph cluster_sg {
+          label=<<b>Security Group</b> awsweb-web-sg<br/><font point-size="9">IN 80/tcp ← 0.0.0.0/0 · IN 22/tcp ← 내 IP/32 · OUT all</font>>;
+          style="dashed,rounded"; color="#c0392b"; penwidth=1.6; fontsize=11;
+          ec2 [label=<<b>EC2</b> t3.micro · Ubuntu 24.04<br/>Nginx :80   GET /health → 200 OK<br/><font point-size="9">Private 10.0.1.x · Public IP 자동 · EBS gp3 8GiB · IMDSv2</font>>, fillcolor="#ffffff", color="#2f9e57", penwidth=1.6];
+        }
+      }
+    }
+  }
+
+  iam [label=<<b>IAM 사용자</b> (루트 계정 사용 안 함)<br/><font point-size="9">최소 권한: EC2·VPC·SG 작업만, 서울 리전,<br/>t2/t3.micro, 볼륨 ≤ 10GiB · Admin 권한 없음</font>>, fillcolor="#f4ecf7", color="#7d3c98"];
+  api [label=<<b>AWS API / 콘솔</b><br/><font point-size="9">리소스 생성·변경 (Control plane)</font>>, fillcolor="#f4ecf7", color="#7d3c98"];
+
+  user -> inet [label=" HTTP 80", color="#2f6fb0", fontcolor="#2f6fb0", penwidth=2];
+  me   -> inet [label=" SSH 22", color="#c0392b", fontcolor="#c0392b", style=dashed];
+  inet -> igw  [label=" 퍼블릭 IP 로 들어온 요청", color="#2f6fb0", fontcolor="#2f6fb0", penwidth=2];
+  igw  -> rt   [label=" ", color="#2f6fb0", penwidth=2];
+  rt   -> ec2  [label=" SG 통과 시 :80 / :22", color="#2f6fb0", fontcolor="#2f6fb0", penwidth=2];
+  ec2  -> rt   [label=" 아웃바운드\n curl https://example.com", style=dotted, color="#2f9e57", fontcolor="#2f9e57", constraint=false];
+  me   -> iam  [label=" 로그인 / aws CLI", style=dashed, color="#7d3c98", fontcolor="#7d3c98"];
+  iam  -> api  [label=" 허용된 작업만", style=dashed, color="#7d3c98", fontcolor="#7d3c98"];
+  api  -> igw  [style=invis];
+
+  { rank=same; user; me; }
+  { rank=same; iam; inet; }
+}
