@@ -1,0 +1,11 @@
+# 생성 리소스 ID 와 개인 키 — 절대 커밋하지 않는다
+.state/
+*.pem
+*.key
+
+# 로컬 자격 증명
+.aws/
+.env
+
+.DS_Store
+Thumbs.db
