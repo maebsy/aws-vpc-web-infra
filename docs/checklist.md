@@ -3,7 +3,7 @@
 미션 체크리스트의 모든 항목에 대해 **근거 위치**와 **설명 답변**을 정리했습니다.
 
 > 표기: 📂 파일 · ▶️ 확인 명령 · 📸 스크린샷 · 📄 자동 기록(`docs/evidence/`)
-> ⚠️ 표시는 실제 AWS 계정에서 실행해야 채워지는 증빙입니다.
+> ✅ 표시는 2026-10-21~22 서울 리전 실제 계정에서 수행해 남긴 증빙입니다 (계정 ID·내 IP 뒷자리는 가림).
 
 - [항목 1. 구성 확인](#항목-1-구성-확인)
 - [항목 2. 설계 설명](#항목-2-설계-설명)
@@ -18,7 +18,7 @@
 
 - 📂 [`scripts/provision.sh`](../scripts/provision.sh) 1~4단계 / 콘솔: [`console-guide.md`](console-guide.md) 1~4장
 - ▶️ `bash scripts/verify.sh` → `## 1. Route Table` 에 `0.0.0.0/0  igw-…  active` 와 서브넷 연결 PASS
-- 📸 `02-route-table.png` ⚠️
+- 📸 [`02-route-table.png`](images/02-route-table.png) ✅ · 📄 [`verify-20261021-114519.txt`](evidence/verify-20261021-114519.txt) `0.0.0.0/0 igw-04af417632b803fb9 active` PASS
 
 | 리소스 | 값 |
 | --- | --- |
@@ -31,25 +31,25 @@
 
 - 📂 [`scripts/user-data.sh`](../scripts/user-data.sh): Nginx 설치·시작·enable, 부팅 로그 `/var/log/user-data.log`
 - ▶️ `ssh -i .state/awsweb-key.pem ubuntu@<IP>` → `systemctl is-active nginx` = active, `curl -s -o /dev/null -w '%{http_code}' http://localhost` = **200**, `curl https://example.com` = 200 (아웃바운드)
-- 📸 `05-ssh-localhost.png` ⚠️
+- 📸 [`05-ssh-localhost.png`](images/05-ssh-localhost.png) ✅ · 📄 [`ssh-inside-20261021-114537.txt`](evidence/ssh-inside-20261021-114537.txt) (nginx active, localhost 200, IMDSv1 401, example.com 200)
 
 ### 1-3. 보안 그룹: 필요한 포트만, SSH 는 특정 IP
 
 - ▶️ `verify.sh` → `80/tcp ← 0.0.0.0/0`, `22/tcp ← x.x.x.x/32 (단일 IP)`, `전체 포트 허용 규칙 없음`, `그 외 인바운드 없음` 4개 PASS
 - 🧪 `tests/run-tests.sh` 가 provision 명령에 전체 포트 규칙이 없고 22 소스가 /32 인지 정적 검사
-- 📸 `03-security-group.png` ⚠️
+- 📸 [`03-security-group.png`](images/03-security-group.png) ✅ (443 규칙은 보너스 1 수행 중 추가한 것) · 📄 `verify-*.txt` SG 4개 PASS
 
 ### 1-4. 외부 접속 검증 — 방식 B 선택
 
 - 📂 Nginx `location = /health { return 200 "OK\n"; }`
 - ▶️ `curl -i http://<퍼블릭IP>/health` → `HTTP/1.1 200 OK` + 본문 `OK`
-- 📸 `06-health-200.png` ⚠️ · 📄 `verify-*.txt`
+- 📸 [`06-health-200.png`](images/06-health-200.png) ✅ · 📄 [`verify-20261021-114519.txt`](evidence/verify-20261021-114519.txt) `/health → 200 OK` PASS
 
 ### 1-5. 리소스 정리 5종 (EC2 / EBS / EIP / IGW / VPC)
 
 - 📂 [`cleanup-checklist.md`](cleanup-checklist.md) (필수 8단계 + 생성 안 했지만 확인할 6종)
 - ▶️ `bash scripts/cleanup.sh` → 마지막에 `audit.sh` 가 EC2·EBS·EIP·NAT·스냅샷·VPC·IGW·SG 를 리전 전체에서 조회해 0 확인
-- 📄 `audit-*.txt` ⚠️ · 📸 `07-cleanup-*.png` ⚠️
+- 📄 [`audit-20261022-000911.txt`](evidence/audit-20261022-000911.txt) 전 항목 0 ✅ · 📸 [`07-cleanup-ec2-terminated.png`](images/07-cleanup-ec2-terminated.png), [`07-cleanup-vpc-empty.png`](images/07-cleanup-vpc-empty.png) ✅
 
 ---
 

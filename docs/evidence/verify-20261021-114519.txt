@@ -1,0 +1,36 @@
+# verify.sh 2026-10-21 11:45:19 KST region=ap-northeast-2
+
+## 1. Route Table
+10.0.0.0/16	local	active
+0.0.0.0/0	igw-04af417632b803fb9	active
+[PASS] 0.0.0.0/0 → igw-04af417632b803fb9 (active)
+[PASS] Subnet subnet-0a25c72f99daa5869 연결됨
+
+## 2. Security Group 인바운드
+tcp	80	80	0.0.0.0/0	None	HTTP-public
+tcp	22	22	116.121.x.x/32	None	SSH-my-ip-only
+[PASS] 80/tcp ← 0.0.0.0/0
+[PASS] 22/tcp ← 116.121.x.x/32 (단일 IP)
+[PASS] 전체 포트(0-65535) 허용 규칙 없음
+[PASS] 그 외 인바운드 없음
+
+## 3. 외부 접속 — 방식 B: GET http://3.38.135.178/health
+HTTP/1.1 200 OK
+Server: nginx
+Date: Wed, 21 Oct 2026 02:45:29 GMT
+Content-Type: text/plain
+Content-Length: 3
+Connection: keep-alive
+Cache-Control: no-store
+
+OK
+[PASS] /health → 200 OK
+
+## 4. (참고) 방식 A: GET http://3.38.135.178/
+HTTP 200
+[PASS] / → 200
+
+## 5. SSH 포트 (내 IP → 22)
+[PASS] 22/tcp 연결 가능 (이 PC 는 허용 IP)
+
+결과: PASS 9 / FAIL 0

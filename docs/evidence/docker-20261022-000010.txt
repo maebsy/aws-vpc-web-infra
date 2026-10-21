@@ -1,0 +1,37 @@
+# Docker 보너스 2026-10-22 00:00:10 KST  instance=i-06fd3c7d996a20681 ip=43.203.233.147  (USER_DATA=bonus/docker/user-data-docker.sh)
+
+## 인스턴스 안 (SSH)
+$ docker ps
+NAMES     IMAGE               STATUS                             PORTS
+web       nginx:1.27-alpine   Up 16 seconds (health: starting)   0.0.0.0:80->80/tcp, [::]:80->80/tcp
+$ docker inspect web (restart / health / mounts)
+restart=unless-stopped health=starting mounts=/opt/web/conf.d->/etc/nginx/conf.d(ro) /opt/web/html->/usr/share/nginx/html(ro) 
+$ systemctl is-active nginx   # 호스트에는 nginx 미설치
+inactive
+$ sudo ss -ltnp | grep :80
+LISTEN 0      4096         0.0.0.0:80         0.0.0.0:*    (docker-proxy)
+LISTEN 0      4096            [::]:80            [::]:*    (docker-proxy)
+$ curl -s -o /dev/null -w "%{http_code}" http://localhost
+200
+$ docker logs web --tail 3
+2026/10/21 14:59:56 [notice] 1#1: start worker process 22
+172.17.0.1 - - [21/Oct/2026:14:59:56 +0000] "GET / HTTP/1.1" 200 387 "-" "curl/8.5.0" "-"
+172.17.0.1 - - [21/Oct/2026:15:00:12 +0000] "GET / HTTP/1.1" 200 387 "-" "curl/8.5.0" "-"
+
+## 외부 (내 PC)
+$ curl -i http://43.203.233.147/health
+HTTP/1.1 200 OK
+Server: nginx
+Date: Wed, 21 Oct 2026 15:00:12 GMT
+Content-Type: text/plain
+Content-Length: 3
+Connection: keep-alive
+
+OK
+$ curl -s http://43.203.233.147/ | grep -o '<h1>.*</h1>'
+<h1>Hello Cloud — running in Docker</h1>
+
+## 헬스체크 통과 후 (00:02:36)
+$ docker ps
+NAMES     IMAGE               STATUS                   PORTS
+web       nginx:1.27-alpine   Up 2 minutes (healthy)   0.0.0.0:80->80/tcp, [::]:80->80/tcp

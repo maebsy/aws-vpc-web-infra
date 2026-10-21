@@ -1,0 +1,19 @@
+# 사례 4: 최소 권한 밖 작업 — 2026-10-21 23:54:47 KST
+
+## 증상: 더 큰 인스턴스(t3.small) 실행 시도 (dry-run, 비용 없음)  (23:54:49)
+
+aws: [ERROR]: An error occurred (UnauthorizedOperation) when calling the RunInstances operation: You are not authorized to perform this operation. User: arn:aws:iam::<ACCOUNT_ID>:user/awsweb-student is not authorized to perform: ec2:RunInstances on resource: arn:aws:ec2:ap-northeast-2:<ACCOUNT_ID>:instance/* because no identity-based policy allows the ec2:RunInstances action. Encoded authorization failure message: <생략>
+
+## 검증: 인코딩된 거부 사유 해독 (어떤 Action·Resource·조건 때문인지)  (23:54:51)
+{
+  "allowed": false,
+  "explicitDeny": false,
+  "action": "RunInstances",
+  "resource": "arn:aws:ec2:ap-northeast-2:<ACCOUNT_ID>:instance/*",
+  "instanceType": "t3.small"
+}
+
+## 조치: 권한을 넓히지 않고 요구사항 범위(t3.micro)로 요청 수정  (23:54:52)
+
+aws: [ERROR]: An error occurred (DryRunOperation) when calling the RunInstances operation: Request would have succeeded, but DryRun flag is set.
+

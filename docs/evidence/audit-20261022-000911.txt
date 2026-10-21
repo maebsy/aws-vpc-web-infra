@@ -1,0 +1,15 @@
+# audit.sh 2026-10-22 00:09:11 KST region=ap-northeast-2 project=aws-vpc-web-infra
+EC2 (terminated 제외)          0 ✅
+EBS 볼륨 (전체)              0 ✅
+Elastic IP                       0 ✅
+NAT Gateway (삭제 제외)      0 ✅
+EBS 스냅샷 (내 소유)       0 ✅
+VPC (Project 태그)             0 ✅
+Internet Gateway (태그)        0 ✅
+Security Group (태그)          0 ✅
+Key Pair                         0 ✅
+ELB/ALB                          확인 불가 (AccessDenied) → 콘솔에서 확인
+RDS                              확인 불가 (AccessDenied) → 콘솔에서 확인
+
+결론: 과금 위험 리소스 없음 (Key Pair 는 과금 없음)
+※ Billing Dashboard 의 당월 비용은 반영까지 최대 24시간 걸릴 수 있습니다.

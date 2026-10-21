@@ -1,0 +1,33 @@
+# HTTPS 보너스 2026-10-21 23:43:51 KST  domain=3-38-135-178.sslip.io (sslip.io: 이름에 IP 를 담은 무료 와일드카드 DNS, 가입 불필요)
+
+$ getent hosts 3-38-135-178.sslip.io
+3.38.135.178    3-38-135-178.sslip.io
+
+$ curl -I https://3-38-135-178.sslip.io/health
+HTTP/1.1 200 OK
+Server: nginx
+Date: Wed, 21 Oct 2026 14:43:51 GMT
+Content-Type: text/plain
+Content-Length: 3
+Connection: keep-alive
+Cache-Control: no-store
+
+$ curl -I http://3-38-135-178.sslip.io/health   # 도메인 HTTP → HTTPS 301
+HTTP/1.1 301 Moved Permanently
+Location: https://3-38-135-178.sslip.io/health
+
+$ curl -I http://3.38.135.178/health   # 기본 과제(IP, HTTP)는 그대로 200
+HTTP/1.1 200 OK
+
+$ openssl s_client -connect 3-38-135-178.sslip.io:443 | openssl x509 -noout -subject -issuer -dates
+subject=CN=3-38-135-178.sslip.io
+issuer=C=US, O=Let's Encrypt, CN=YE1
+notBefore=Oct 21 13:39:43 2026 GMT
+notAfter=Jan 19 13:39:42 2027 GMT
+
+$ (서버) systemctl list-timers certbot.timer; sudo certbot renew --dry-run
+NEXT                        LEFT LAST PASSED UNIT          ACTIVATES
+Thu 2026-10-22 01:31:59 UTC  10h -         - certbot.timer certbot.service
+Simulating renewal of an existing certificate for 3-38-135-178.sslip.io
+Congratulations, all simulated renewals succeeded: 
+  /etc/letsencrypt/live/3-38-135-178.sslip.io/fullchain.pem (success)

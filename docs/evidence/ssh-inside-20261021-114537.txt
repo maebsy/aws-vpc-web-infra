@@ -1,0 +1,25 @@
+# 2026-10-21 02:45:38 UTC host=ip-10-0-1-104
+$ systemctl is-active nginx
+active
+$ curl -i http://localhost/health
+HTTP/1.1 200 OK
+Server: nginx
+Date: Wed, 21 Oct 2026 02:45:38 GMT
+Content-Type: text/plain
+Content-Length: 3
+Connection: keep-alive
+Cache-Control: no-store
+
+OK
+
+$ ss -ltn | grep -E ":(80|22) "
+LISTEN 0      511          0.0.0.0:80        0.0.0.0:*          
+LISTEN 0      4096         0.0.0.0:22        0.0.0.0:*          
+LISTEN 0      511             [::]:80           [::]:*          
+LISTEN 0      4096            [::]:22           [::]:*          
+$ curl -s -H "X-aws-ec2-metadata-token: $TOKEN" .../meta-data/placement/availability-zone
+ap-northeast-2a
+$ curl -s .../meta-data/ami-id (토큰 없이, IMDSv1)
+HTTP 401
+$ curl -sI https://example.com | head -1   # 아웃바운드(IGW 경유)
+HTTP/2 200 

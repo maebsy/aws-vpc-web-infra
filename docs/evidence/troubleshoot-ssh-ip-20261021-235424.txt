@@ -1,0 +1,33 @@
+# 사례 2: SSH 허용 IP 불일치 — 2026-10-21 23:54:25 KST
+
+## 정상 상태  (23:54:25)
+22/tcp: 연결됨
+
+## 장애 주입: 22/tcp 소스를 다른 IP 로  (23:54:25)
+$ aws ec2 modify-security-group-rules --group-id sg-02ed843be1eca48fb --security-group-rules SecurityGroupRuleId=sgr-0f5f486f8318c20ed,SecurityGroupRule={IpProtocol=tcp,FromPort=22,ToPort=22,CidrIpv4=198.51.100.1/32,Description=SSH-my-ip-only}
+{
+    "Return": true
+}
+(exit 0)
+
+## 증상  (23:54:30)
+22/tcp: 6초 내 응답 없음 (timeout)
+(HTTP 는 정상인지 비교)
+http_code=200 time_total=0.013176s
+(curl exit 0: 0=정상, 7=connection refused, 28=timeout)
+
+## 가설 검증: 지금 내 공인 IP vs SG 허용 IP  (23:54:36)
+my ip : 116.121.x.x
+$ aws ec2 describe-security-group-rules --security-group-rule-ids sgr-0f5f486f8318c20ed --query SecurityGroupRules[0].CidrIpv4 --output text
+198.51.100.1/32
+(exit 0)
+
+## 조치: 현재 IP/32 로 수정  (23:54:38)
+$ aws ec2 modify-security-group-rules --group-id sg-02ed843be1eca48fb --security-group-rules SecurityGroupRuleId=sgr-0f5f486f8318c20ed,SecurityGroupRule={IpProtocol=tcp,FromPort=22,ToPort=22,CidrIpv4=116.121.x.x/32,Description=SSH-my-ip-only}
+{
+    "Return": true
+}
+(exit 0)
+
+## 결과  (23:54:43)
+22/tcp: 연결됨

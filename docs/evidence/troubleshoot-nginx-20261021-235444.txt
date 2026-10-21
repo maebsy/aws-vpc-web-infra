@@ -1,0 +1,36 @@
+# 사례 3: 웹 서버 프로세스 중지 — 2026-10-21 23:54:44 KST
+
+## 정상 상태  (23:54:44)
+http_code=200 time_total=0.013899s
+(curl exit 0: 0=정상, 7=connection refused, 28=timeout)
+
+## 장애 주입: systemctl stop nginx  (23:54:44)
+$ ssh -i /home/min/projects/aws-vpc-web-infra/.state/awsweb-key.pem -o StrictHostKeyChecking=accept-new -o ConnectTimeout=8 ubuntu@3.38.135.178 sudo systemctl stop nginx
+(exit 0)
+
+## 증상: 외부에서 /health (timeout 이 아니라 즉시 거부되는지 본다)  (23:54:45)
+http_code=000 time_total=0.005953s
+(curl exit 7: 0=정상, 7=connection refused, 28=timeout)
+
+## 가설 검증: 서버 안에서 포트·프로세스·로그  (23:54:45)
+$ ssh -i /home/min/projects/aws-vpc-web-infra/.state/awsweb-key.pem -o StrictHostKeyChecking=accept-new -o ConnectTimeout=8 ubuntu@3.38.135.178 sudo ss -tlnp | grep ':80 ' || echo '80 포트 LISTEN 없음'; systemctl is-active nginx; curl -s -o /dev/null -w 'localhost http_code=%{http_code}\n' http://localhost/health; sudo journalctl -u nginx -n 5 --no-pager
+80 포트 LISTEN 없음
+inactive
+localhost http_code=000
+Oct 21 14:43:41 ip-10-0-1-104 nginx[12045]: 2026/10/21 14:43:41 [notice] 12045#12045: signal process started
+Oct 21 14:43:41 ip-10-0-1-104 systemd[1]: Reloaded nginx.service - A high performance web server and a reverse proxy server.
+Oct 21 14:54:45 ip-10-0-1-104 systemd[1]: Stopping nginx.service - A high performance web server and a reverse proxy server...
+Oct 21 14:54:45 ip-10-0-1-104 systemd[1]: nginx.service: Deactivated successfully.
+Oct 21 14:54:45 ip-10-0-1-104 systemd[1]: Stopped nginx.service - A high performance web server and a reverse proxy server.
+(exit 0)
+
+## 조치: systemctl start nginx  (23:54:45)
+$ ssh -i /home/min/projects/aws-vpc-web-infra/.state/awsweb-key.pem -o StrictHostKeyChecking=accept-new -o ConnectTimeout=8 ubuntu@3.38.135.178 sudo systemctl start nginx
+(exit 0)
+
+## 결과  (23:54:46)
+http_code=200 time_total=0.014398s
+(curl exit 0: 0=정상, 7=connection refused, 28=timeout)
+$ ssh -i /home/min/projects/aws-vpc-web-infra/.state/awsweb-key.pem -o StrictHostKeyChecking=accept-new -o ConnectTimeout=8 ubuntu@3.38.135.178 curl -s -o /dev/null -w 'localhost http_code=%{http_code}\n' http://localhost/
+localhost http_code=200
+(exit 0)

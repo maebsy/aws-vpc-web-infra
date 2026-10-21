@@ -37,21 +37,26 @@
 | 항목 | 값 |
 | --- | --- |
 | **선택한 방식** | **방식 B: `GET http://<퍼블릭IP>/health` → `200 OK` + 고정 응답 `OK`** |
-| 접속 정보 | `http://<퍼블릭IP>/health` ← 실습 시 발급된 IP 기재 ⚠️ |
+| 접속 정보 | `http://3.38.135.178/health` (2026-10-21 서울 리전 실습 당시 자동 할당 IP, 정리 후 반납) |
 | 구성 | Nginx `location = /health { return 200 "OK\n"; }` ([`scripts/user-data.sh`](scripts/user-data.sh)) |
 | 참고 | 같은 서버의 `/` 는 정적 페이지 "Hello Cloud" (방식 A 도 함께 확인 가능) |
 
 ```console
-$ curl -i http://<퍼블릭IP>/health
+$ curl -i http://3.38.135.178/health
 HTTP/1.1 200 OK
 Server: nginx
+Date: Wed, 21 Oct 2026 14:21:55 GMT
 Content-Type: text/plain
+Content-Length: 3
+Connection: keep-alive
 Cache-Control: no-store
 
 OK
 ```
 
-📸 접속 결과 스크린샷: `docs/images/06-health-200.png` ⚠️
+📸 접속 결과 스크린샷 ([`docs/images/06-health-200.png`](docs/images/06-health-200.png)) · 자동 검증 기록 [`verify-20261021-114519.txt`](docs/evidence/verify-20261021-114519.txt) (PASS 9 / FAIL 0)
+
+![외부에서 /health 200 OK](docs/images/06-health-200.png)
 
 > 실습이 끝나면 비용 방지를 위해 모든 리소스를 삭제하므로 **위 IP 는 현재 접속되지 않습니다.** 접속 사실은 스크린샷과 `docs/evidence/verify-*.txt` 로 증빙합니다.
 
@@ -120,20 +125,24 @@ bash scripts/cleanup.sh                    # 역순 삭제 + audit → docs/evid
 
 | 보너스 | 구현 | 상태 |
 | --- | --- | --- |
-| **1. HTTPS 적용** | [`bonus/https/open-443.sh`](bonus/https/open-443.sh) (SG 443 + Elastic IP, `--revert` 로 정리), [`bonus/https/enable-https.sh`](bonus/https/enable-https.sh) (DNS 확인 → certbot `--nginx --redirect` → 자동 갱신 dry-run → 인증서 확인) | 스크립트 완료, 도메인 발급·실행·캡처는 직접 ⚠️ |
-| **2. Docker 배포** | [`bonus/docker/user-data-docker.sh`](bonus/docker/user-data-docker.sh): 이미지 **`nginx:1.27-alpine`**, 실행 `docker run -d --restart unless-stopped -p 80:80 -v …:ro --health-cmd …`, **포트 매핑 호스트 80 → 컨테이너 80** | 스크립트 완료, `USER_DATA=… provision.sh` 실행 후 `docker ps`·외부 `/health` 캡처 2장 ⚠️ |
+| **1. HTTPS 적용** | [`bonus/https/open-443.sh`](bonus/https/open-443.sh) (SG 443 + Elastic IP, `--revert` 로 정리), [`bonus/https/enable-https.sh`](bonus/https/enable-https.sh) (DNS 확인 → certbot `--nginx --redirect` → 자동 갱신 dry-run → 인증서 확인) | ✅ 2026-10-21 수행: `https://3-38-135-178.sslip.io` (sslip.io 무료 DNS + Let's Encrypt, 자동 갱신 dry-run 성공) · 📸 [`bonus-https-browser`](docs/images/bonus-https-browser.png), [`bonus-https-curl`](docs/images/bonus-https-curl.png) |
+| **2. Docker 배포** | [`bonus/docker/user-data-docker.sh`](bonus/docker/user-data-docker.sh): 이미지 **`nginx:1.27-alpine`**, 실행 `docker run -d --restart unless-stopped -p 80:80 -v …:ro --health-cmd …`, **포트 매핑 호스트 80 → 컨테이너 80** | ✅ 2026-10-22 수행: 컨테이너 `healthy`, 외부 `/health` 200 · 📸 [`bonus-docker-ps`](docs/images/bonus-docker-ps.png), [`bonus-docker-health`](docs/images/bonus-docker-health.png) |
 
 상세: [`docs/bonus.md`](docs/bonus.md)
 
-## 직접 수행해야 하는 부분 ⚠️
+## 실습 수행 기록 (2026-10-21 ~ 22, 서울 리전, IAM 사용자 `awsweb-student`)
 
-AWS 계정과 비용이 필요한 작업은 제가 대신 실행할 수 없어 스크립트와 가이드로 준비했습니다.
+| 단계 | 결과 | 증빙 |
+| --- | --- | --- |
+| IAM 최소 권한 확인 | `iam-check.sh` **PASS 10 / FAIL 0** (허용 4건, 범위 밖 6건 거부) | 📸 [01](docs/images/01-iam-user-policy.png) · 📄 [`iam-check`](docs/evidence/iam-check-20261021-113609.txt) |
+| 구축 + 자동 검증 | `provision.sh` → `verify.sh` **PASS 9 / FAIL 0** | 📸 [02](docs/images/02-route-table.png) [03](docs/images/03-security-group.png) [04](docs/images/04-ec2-instance.png) · 📄 [`verify`](docs/evidence/verify-20261021-114519.txt) |
+| SSH + 서버 안 확인 | nginx active, `localhost/health` 200, IMDSv1 401, `example.com` 200 | 📸 [05](docs/images/05-ssh-localhost.png) · 📄 [`ssh-inside`](docs/evidence/ssh-inside-20261021-114537.txt) |
+| 외부 접속 (방식 B) | `GET /health` → `200 OK` | 📸 [06](docs/images/06-health-200.png) |
+| 장애 재현 4종 | 경로 삭제 timeout(8초) / SSH IP 불일치 / Nginx 중지 refused(0.006초) / 권한 밖 UnauthorizedOperation | [`troubleshooting.md`](docs/troubleshooting.md) · 📄 `troubleshoot-*` |
+| 보너스 1·2 | HTTPS(sslip.io + Let's Encrypt), Docker(`nginx:1.27-alpine`, healthy) | 📄 [`https`](docs/evidence/https-20261021-234351.txt) · [`docker`](docs/evidence/docker-20261022-000010.txt) |
+| 정리 | `cleanup.sh` → `audit.sh` 과금 리소스 **0** | 📸 [07-ec2](docs/images/07-cleanup-ec2-terminated.png) [07-vpc](docs/images/07-cleanup-vpc-empty.png) · [`cleanup-checklist.md`](docs/cleanup-checklist.md) |
 
-1. IAM 사용자 생성 + 정책 연결 (콘솔 가이드 0장) → 📸 01
-2. `provision.sh` 또는 콘솔로 구축 → `verify.sh` → 📸 02~06, README 의 **접속 정보(IP)** 기재
-3. (선택) `troubleshoot.sh route` 등 실행 → [`troubleshooting.md`](docs/troubleshooting.md) "실제 관측" 칸 채우기
-4. (선택) 보너스 1·2 실행 → 캡처
-5. `cleanup.sh` → `audit.sh` 결과와 📸 07 을 [`cleanup-checklist.md`](docs/cleanup-checklist.md) 에 기록
+증빙의 계정 ID·Access Key·내 공인 IP 뒷자리는 가렸습니다.
 
 ## 프로젝트 구조
 

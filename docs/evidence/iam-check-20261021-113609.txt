@@ -1,0 +1,17 @@
+# iam-check.sh 2026-10-21 11:36:11 KST caller=arn:aws:iam::<ACCOUNT_ID>:user/awsweb-student
+
+## 허용되어야 하는 작업
+[PASS] allow EC2 조회 (서울)
+[PASS] allow t3.micro 실행 (dry-run)
+[PASS] allow VPC 생성 (dry-run)
+[PASS] allow SG 규칙 변경 권한 (dry-run)
+
+## 거부되어야 하는 작업 (최소 권한)
+[PASS] deny  t3.small 실행 — 프리 티어 밖
+[PASS] deny  루트 볼륨 30GiB — 10GiB 초과
+[PASS] deny  다른 리전(us-east-1) VPC 생성
+[PASS] deny  S3 버킷 목록 — 실습과 무관
+[PASS] deny  IAM 사용자 목록 — 관리자 권한
+[PASS] deny  RDS 조회 — 실습과 무관
+
+결과: PASS 10 / FAIL 0

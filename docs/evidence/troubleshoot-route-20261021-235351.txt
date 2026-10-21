@@ -1,0 +1,42 @@
+# 사례 1: 기본 경로 누락 — 2026-10-21 23:53:51 KST
+
+## 정상 상태  (23:53:51)
+http_code=200 time_total=0.016891s
+(curl exit 0: 0=정상, 7=connection refused, 28=timeout)
+
+## 장애 주입: 0.0.0.0/0 → IGW 경로 삭제  (23:53:51)
+$ aws ec2 delete-route --route-table-id rtb-019d5a395d230f163 --destination-cidr-block 0.0.0.0/0
+(exit 0)
+
+## 증상: 외부에서 /health  (23:53:58)
+http_code=000 time_total=8.002598s
+(curl exit 28: 0=정상, 7=connection refused, 28=timeout)
+22/tcp: 6초 내 응답 없음 (timeout)
+
+## 가설 검증 1: 인스턴스·Nginx 는 정상인가  (23:54:12)
+$ aws ec2 describe-instance-status --instance-ids i-020360102ec4d4043 --query InstanceStatuses[0].[InstanceState.Name,InstanceStatus.Status,SystemStatus.Status] --output text
+running	ok	ok
+(exit 0)
+
+## 가설 검증 2: 보안 그룹은 그대로인가  (23:54:13)
+$ aws ec2 describe-security-group-rules --filters Name=group-id,Values=sg-02ed843be1eca48fb --query SecurityGroupRules[?IsEgress==`false`].[FromPort,CidrIpv4] --output text
+80	0.0.0.0/0
+443	0.0.0.0/0
+22	116.121.x.x/32
+(exit 0)
+
+## 가설 검증 3: 라우팅  (23:54:15)
+$ aws ec2 describe-route-tables --route-table-ids rtb-019d5a395d230f163 --query RouteTables[0].Routes[].[DestinationCidrBlock,GatewayId] --output text
+10.0.0.0/16	local
+(exit 0)
+
+## 조치: 경로 복구  (23:54:16)
+$ aws ec2 create-route --route-table-id rtb-019d5a395d230f163 --destination-cidr-block 0.0.0.0/0 --gateway-id igw-04af417632b803fb9
+{
+    "Return": true
+}
+(exit 0)
+
+## 결과  (23:54:23)
+http_code=200 time_total=0.030423s
+(curl exit 0: 0=정상, 7=connection refused, 28=timeout)

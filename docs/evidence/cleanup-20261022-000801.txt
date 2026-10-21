@@ -1,0 +1,48 @@
+[36m[INFO][0m 호출자: arn:aws:iam::<ACCOUNT_ID>:user/awsweb-student / 리전: ap-northeast-2
+
+[1m== 1. EC2 종료 ==[0m
+[32m[ OK ][0m terminated: i-020360102ec4d4043
+i-06fd3c7d996a20681
+
+[1m== 2. Elastic IP 해제 ==[0m
+
+[1m== 3. 남은 EBS 볼륨 (available) ==[0m
+
+[1m== 4. Security Group ==[0m
+{
+    "Return": true,
+    "GroupId": "sg-02ed843be1eca48fb"
+}
+[32m[ OK ][0m deleted sg-02ed843be1eca48fb
+
+[1m== 5. Route Table ==[0m
+[32m[ OK ][0m deleted rtb-019d5a395d230f163
+
+[1m== 6. Internet Gateway ==[0m
+[32m[ OK ][0m deleted igw-04af417632b803fb9
+
+[1m== 7. Subnet → VPC ==[0m
+[32m[ OK ][0m deleted subnet-0a25c72f99daa5869
+[32m[ OK ][0m deleted vpc-0bdc44471e12dcd3f
+
+[1m== 8. Key Pair ==[0m
+[32m[ OK ][0m deleted key pair awsweb-key
+
+[1m== 확인 ==[0m
+[36m[INFO][0m 호출자: arn:aws:iam::<ACCOUNT_ID>:user/awsweb-student / 리전: ap-northeast-2
+# audit.sh 2026-10-22 00:09:11 KST region=ap-northeast-2 project=aws-vpc-web-infra
+EC2 (terminated 제외)          0 ✅
+EBS 볼륨 (전체)              0 ✅
+Elastic IP                       0 ✅
+NAT Gateway (삭제 제외)      0 ✅
+EBS 스냅샷 (내 소유)       0 ✅
+VPC (Project 태그)             0 ✅
+Internet Gateway (태그)        0 ✅
+Security Group (태그)          0 ✅
+Key Pair                         0 ✅
+ELB/ALB                          확인 불가 (AccessDenied) → 콘솔에서 확인
+RDS                              확인 불가 (AccessDenied) → 콘솔에서 확인
+
+결론: 과금 위험 리소스 없음 (Key Pair 는 과금 없음)
+※ Billing Dashboard 의 당월 비용은 반영까지 최대 24시간 걸릴 수 있습니다.
+[36m[INFO][0m 증빙 저장: docs/evidence/audit-20261022-000911.txt

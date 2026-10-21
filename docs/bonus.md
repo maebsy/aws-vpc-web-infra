@@ -1,9 +1,9 @@
 # 보너스 과제
 
-| 보너스 | 구현 | 사용자가 직접 할 일 |
+| 보너스 | 구현 | 수행 결과 |
 | --- | --- | --- |
-| **1. HTTPS 적용** | [`bonus/https/open-443.sh`](../bonus/https/open-443.sh) (SG 443 + Elastic IP), [`bonus/https/enable-https.sh`](../bonus/https/enable-https.sh) (certbot, 자동 갱신, 리다이렉트) | 무료 서브도메인 발급·A 레코드 설정, 스크립트 실행, 결과 캡처 |
-| **2. Docker 배포** | [`bonus/docker/user-data-docker.sh`](../bonus/docker/user-data-docker.sh) (Docker 설치 + `nginx:1.27-alpine` 실행, /health, 헬스체크, 자동 재시작) | `USER_DATA=… provision.sh` 실행, `docker ps`·외부 접속 캡처 |
+| **1. HTTPS 적용** | [`bonus/https/open-443.sh`](../bonus/https/open-443.sh) (SG 443 + Elastic IP), [`bonus/https/enable-https.sh`](../bonus/https/enable-https.sh) (certbot, 자동 갱신, 리다이렉트) | ✅ 2026-10-21 `https://3-38-135-178.sslip.io` 200, 인증서 Let's Encrypt(YE1) ~2027-01-19 |
+| **2. Docker 배포** | [`bonus/docker/user-data-docker.sh`](../bonus/docker/user-data-docker.sh) (Docker 설치 + `nginx:1.27-alpine` 실행, /health, 헬스체크, 자동 재시작) | ✅ 2026-10-22 `web nginx:1.27-alpine Up (healthy)`, 외부 `/health` 200 |
 
 ---
 
@@ -35,7 +35,20 @@ curl -s -o /dev/null -w '%{http_code}\n' http://localhost      # 200 (필수)
 curl -i http://<퍼블릭IP>/health                                # 200 OK / OK (필수)
 ```
 
-📸 `docs/images/bonus-docker-ps.png`, `docs/images/bonus-docker-health.png`
+**실제 수행 결과** (2026-10-22, 인스턴스 `i-06fd3c7d996a20681` / `43.203.233.147`, 기록 [`docker-20261022-000010.txt`](evidence/docker-20261022-000010.txt))
+
+```text
+NAMES     IMAGE               STATUS                   PORTS
+web       nginx:1.27-alpine   Up 2 minutes (healthy)   0.0.0.0:80->80/tcp, [::]:80->80/tcp
+restart=unless-stopped  mounts=/opt/web/conf.d->/etc/nginx/conf.d(ro) /opt/web/html->/usr/share/nginx/html(ro)
+systemctl is-active nginx → inactive        # 호스트에는 Nginx 가 없다
+0.0.0.0:80 LISTEN (docker-proxy)            # 80 을 듣는 건 Docker 포트 매핑
+localhost → 200 / 외부 GET /health → HTTP/1.1 200 OK, OK
+```
+
+📸 [`bonus-docker-ps.png`](images/bonus-docker-ps.png) · [`bonus-docker-health.png`](images/bonus-docker-health.png)
+
+![docker ps](images/bonus-docker-ps.png)
 
 **호스트 설치와 비교해 달라진 점**: Nginx 버전이 이미지 태그로 고정돼 어느 서버에서나 같은 결과가 나오고, 서버에는 Docker 만 있으면 됩니다. 반대로 컨테이너 로그는 `docker logs web` 으로 봐야 하고(호스트 `/var/log/nginx` 가 아님), 포트 매핑을 빠뜨리면 컨테이너는 떠 있는데 외부 접속은 안 되는(SG 가 아니라 호스트 포트 문제) 새로운 장애 유형이 생깁니다.
 
@@ -64,7 +77,25 @@ http://…  ──▶ Nginx(:80) ──301──▶ https://…          (인증
 4. **검증**: 브라우저 `https://<도메인>` 자물쇠 / `curl -I https://<도메인>/health` → `HTTP/1.1 200 OK`
 5. **정리**: `bash bonus/https/open-443.sh --revert` (443 규칙 제거 + **Elastic IP 릴리스**), DuckDNS 레코드 삭제
 
-📸 `docs/images/bonus-https-browser.png`, `docs/images/bonus-https-curl.png`
+**실제 수행 결과** (2026-10-21, 기록 [`https-20261021-234351.txt`](evidence/https-20261021-234351.txt))
+
+실습에서는 가입이 필요한 DuckDNS 대신 **sslip.io** 를 썼습니다. `3-38-135-178.sslip.io` 처럼 이름 안에 IP 를 적으면 그 IP 로 응답하는 무료 DNS 라 A 레코드 설정이 필요 없습니다. 인스턴스를 멈추지 않으므로 IP 가 바뀌지 않아 **Elastic IP 는 생략**했고(`open-443.sh` 대신 443 규칙만 추가), 정리할 EIP 도 생기지 않았습니다.
+
+```text
+$ curl -I https://3-38-135-178.sslip.io/health   → HTTP/1.1 200 OK
+$ curl -I http://3-38-135-178.sslip.io/health    → HTTP/1.1 301, Location: https://…/health
+$ curl -I http://3.38.135.178/health             → HTTP/1.1 200 OK   (기본 과제의 IP 접속은 그대로)
+subject=CN=3-38-135-178.sslip.io  issuer=C=US, O=Let's Encrypt, CN=YE1  notAfter=Jan 19 13:39:42 2027 GMT
+certbot.timer 등록 · certbot renew --dry-run → Congratulations, all simulated renewals succeeded
+```
+
+> 실행 중 발견해 고친 점: certbot `--redirect` 는 80 블록의 도메인 외 요청에 `return 404` 를 넣어 **기본 과제의 `http://<IP>/health` 가 404** 가 됐습니다. `enable-https.sh` 가 그 404 를 원래 설정(`/health` 200, 정적 페이지)으로 바꾸도록 수정해, 도메인 요청만 HTTPS 로 리다이렉트하고 IP 요청은 기존처럼 응답합니다.
+
+크롬은 117 버전부터 주소창 자물쇠 대신 사이트 정보 아이콘을 보여 주므로, 아이콘을 눌러 **"Connection is secure"** 를 캡처했습니다.
+
+📸 [`bonus-https-browser.png`](images/bonus-https-browser.png) · [`bonus-https-curl.png`](images/bonus-https-curl.png)
+
+![HTTPS 브라우저](images/bonus-https-browser.png)
 
 **주의**
 - 80 포트를 닫으면 HTTP-01 인증과 갱신이 실패합니다. 80 은 리다이렉트용으로 유지합니다.
