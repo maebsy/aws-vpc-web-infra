@@ -35,7 +35,11 @@ check "Docker: -p 80:80 포트 매핑" grep -q -- '-p 80:80' bonus/docker/user-d
 check "Docker: --restart unless-stopped" grep -q -- '--restart unless-stopped' bonus/docker/user-data-docker.sh
 
 section "provision.sh DRY_RUN"
-rm -rf .state
+# 실제 실습 중인 .state(리소스 ID·SSH 개인 키)는 지우지 않고 잠시 옮겼다가 끝나면 되돌린다
+if [[ -e .state ]]; then
+    BACKUP="$(mktemp -d)"; mv .state "$BACKUP/"
+    trap 'rm -rf .state; mv "$BACKUP/.state" .state && rmdir "$BACKUP"' EXIT
+fi
 OUT="$(DRY_RUN=1 bash scripts/provision.sh 2>&1)"
 order="$(grep -oE 'aws ec2 (create-vpc|create-subnet|create-internet-gateway|attach-internet-gateway|create-route-table|create-route |associate-route-table|create-security-group|authorize-security-group-ingress|create-key-pair|run-instances)' <<< "$OUT" | awk '{print $3}' | uniq | tr '\n' ' ')"
 check "생성 순서 VPC→Subnet→IGW→RT→Route→SG→Key→EC2" test "$order" = "create-vpc create-subnet create-internet-gateway attach-internet-gateway create-route-table create-route associate-route-table create-security-group authorize-security-group-ingress create-key-pair run-instances "

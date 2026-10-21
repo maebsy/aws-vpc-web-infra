@@ -105,7 +105,7 @@ ok "Key Pair $KEY_NAME"
 
 # ---------------------------------------------------------------- 7. EC2
 if [[ -z "${INSTANCE_ID:-}" ]]; then
-    AMI_ID="$(DRY_VALUE=ami-DRYRUN awsx ec2 describe-images --owners 099720108477 \
+    AMI_ID="$(DRY_VALUE=ami-DRYRUN awsx ec2 describe-images --owners 099720109477 \
         --filters 'Name=name,Values=ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*' 'Name=state,Values=available' \
         --query 'sort_by(Images,&CreationDate)[-1].ImageId' --output text)"
     info "AMI: $AMI_ID (Ubuntu 24.04 LTS 최신)"

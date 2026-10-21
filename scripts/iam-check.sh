@@ -29,7 +29,7 @@ expect() {   # expect <allow|deny> <설명> <명령...>
     else FAIL=$((FAIL + 1)); printf '[FAIL] %-5s (기대 %s) %s\n       %s\n' "$got" "$want" "$desc" "$(head -c 300 <<< "$out")"; fi
 }
 
-AMI="$(aws ec2 describe-images --owners 099720108477 \
+AMI="$(aws ec2 describe-images --owners 099720109477 \
     --filters 'Name=name,Values=ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*' \
     --query 'sort_by(Images,&CreationDate)[-1].ImageId' --output text 2>/dev/null)"
 SUBNET="${SUBNET_ID:-}"

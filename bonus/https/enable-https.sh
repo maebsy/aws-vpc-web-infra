@@ -32,8 +32,15 @@ nginx -t && systemctl reload nginx
 # --redirect: HTTP 요청을 HTTPS 로 301 리다이렉트 (/health 포함)
 certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$EMAIL" --redirect
 
+# certbot 이 만든 80 블록은 도메인이 아닌 요청(http://<IP>/health)에 404 를 준다.
+# 도메인 요청은 그대로 301 → HTTPS, IP 로 오는 기본 과제 요청은 기존처럼 응답하도록 404 를 원래 설정으로 바꾼다.
+CONF=/etc/nginx/sites-available/aws-vpc-web.conf
+WEB_ROOT="$(awk '$1=="root"{gsub(";","",$2); print $2; exit}' "$CONF")"
+perl -0pi -e 's|    return 404; # managed by Certbot|    root '"$WEB_ROOT"';\n    location = /health { access_log off; default_type text/plain; add_header Cache-Control "no-store"; return 200 "OK\\n"; }\n    location / { try_files \$uri \$uri/ =404; }\n    server_tokens off;|' "$CONF"
+nginx -t && systemctl reload nginx
+
 systemctl list-timers | grep -i certbot || true    # 자동 갱신 타이머 (90일 인증서를 60일마다 갱신)
 certbot renew --dry-run
 echo
-echo "[CHECK] $(curl -s -o /dev/null -w 'https://%{url_effective} → %{http_code}' "https://$DOMAIN/health")"
+echo "[CHECK] $(curl -s -o /dev/null -w '%{url_effective} → %{http_code}' "https://$DOMAIN/health")"
 echo "[CHECK] 인증서: $(echo | openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" 2>/dev/null | openssl x509 -noout -issuer -enddate | tr '\n' ' ')"
