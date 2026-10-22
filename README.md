@@ -121,6 +121,8 @@ bash scripts/cleanup.sh                    # 역순 삭제 + audit → docs/evid
 
 체크리스트 질문별 답변: [`docs/checklist.md`](docs/checklist.md)
 
+동료 평가 발표 슬라이드 65장: [`docs/presentation.html`](docs/presentation.html) (브라우저로 열기, ← → 넘기기 · N 발표자 노트 · 인쇄하면 PDF)
+
 ## 선택(보너스) 과제 구현 내역
 
 | 보너스 | 구현 | 상태 |
@@ -157,7 +159,8 @@ aws-vpc-web-infra/
 │   ├── checklist.md              # 체크리스트 답변서
 │   ├── bonus.md                  # 보너스 1·2
 │   ├── images/                   # 스크린샷
-│   └── evidence/                 # verify / audit / iam-check / troubleshoot 실행 기록
+│   ├── evidence/                 # verify / audit / iam-check / troubleshoot 실행 기록
+│   └── presentation.html         # 동료 평가 발표 슬라이드
 ├── iam/                          # 최소 권한 정책, 태그 범위 강화안, 비용 조회 정책
 ├── scripts/                      # provision / verify / iam-check / troubleshoot / cleanup / audit / user-data
 ├── bonus/https/, bonus/docker/   # 보너스
