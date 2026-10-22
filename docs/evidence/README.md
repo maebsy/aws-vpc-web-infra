@@ -11,5 +11,6 @@
 | `ssh-inside-<시각>.txt` | SSH 로 직접 수집 | 서버 안 nginx·localhost·IMDSv2·아웃바운드 (1-2) |
 | `https-*.txt`, `docker-*.txt` | 직접 수집 | 보너스 1·2 결과 |
 | `cleanup-<시각>.txt` | `scripts/cleanup.sh` 출력 | 삭제 순서와 결과 |
+| `billing-<시각>.txt` | 콘솔 Billing 화면을 옮겨 적음 | 정리 후 청구 예정액 (1-5) |
 
 공개 저장소라면 올리기 전에 계정 ID·IP 가 드러나도 괜찮은지 확인하세요 (필요하면 일부를 `x` 로 가립니다).

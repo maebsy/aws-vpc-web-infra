@@ -40,7 +40,7 @@
 | RDS | 인스턴스 시간 + 스토리지 | RDS 콘솔 | ☑ 콘솔 Databases (0) |
 | EBS 스냅샷 | GB-월 과금 | EC2 → 스냅샷 (내 소유) / `audit.sh` | ☑ audit 0 |
 | 다른 리전 | 실수로 다른 리전에 만든 리소스 | 콘솔 오른쪽 위 리전 전환, EC2 대시보드 "리소스" 카운트 | ☑ EC2 Global View: 다른 리전은 기본 VPC·서브넷·SG 만 (무과금), Volumes 0 |
-| **Billing** | 당월 비용 | Billing and Cost Management → 홈 / 프리 티어 사용량 (반영까지 최대 24시간) | ☐ 정리 다음 날(2026-10-23) 확인 예정 |
+| **Billing** | 당월 비용 | Billing and Cost Management → 홈 / 프리 티어 사용량 (반영까지 최대 24시간) | ☑ 2026-10-22 23:23 청구 예정액 **USD 0.00** — 사용분 약 $0.24 는 프리 플랜 크레딧 차감 ([기록](evidence/billing-20261022-2323.txt)) |
 
 ## 순서가 중요한 이유
 
@@ -87,3 +87,9 @@ ELB/RDS 는 최소 권한 정책에 조회 권한이 없어 루트 콘솔에서 
 📸 [`07-cleanup-vpc-empty.png`](images/07-cleanup-vpc-empty.png) — 기본 VPC(172.31.0.0/16) 만 남음
 
 ![VPC 목록](images/07-cleanup-vpc-empty.png)
+
+📸 [`07-cleanup-billing.png`](images/07-cleanup-billing.png) — 정리 약 23시간 뒤 Bills: 10월 청구 예정액 USD 0.00 (프리 플랜은 크레딧으로 차감)
+
+![Billing](images/07-cleanup-billing.png)
+
+📸 [`07-cleanup-billing-credits.png`](images/07-cleanup-billing-credits.png) — Credits: 실습 사용분 약 $0.24 를 AWS Free Tier 크레딧에서 차감, $119.76 남음

@@ -140,7 +140,7 @@ bash scripts/cleanup.sh                    # 역순 삭제 + audit → docs/evid
 | 외부 접속 (방식 B) | `GET /health` → `200 OK` | 📸 [06](docs/images/06-health-200.png) |
 | 장애 재현 4종 | 경로 삭제 timeout(8초) / SSH IP 불일치 / Nginx 중지 refused(0.006초) / 권한 밖 UnauthorizedOperation | [`troubleshooting.md`](docs/troubleshooting.md) · 📄 `troubleshoot-*` |
 | 보너스 1·2 | HTTPS(sslip.io + Let's Encrypt), Docker(`nginx:1.27-alpine`, healthy) | 📄 [`https`](docs/evidence/https-20261021-234351.txt) · [`docker`](docs/evidence/docker-20261022-000010.txt) |
-| 정리 | `cleanup.sh` → `audit.sh` 과금 리소스 **0** | 📸 [07-ec2](docs/images/07-cleanup-ec2-terminated.png) [07-vpc](docs/images/07-cleanup-vpc-empty.png) · [`cleanup-checklist.md`](docs/cleanup-checklist.md) |
+| 정리 | `cleanup.sh` → `audit.sh` 과금 리소스 **0** | 📸 [07-ec2](docs/images/07-cleanup-ec2-terminated.png) [07-vpc](docs/images/07-cleanup-vpc-empty.png) [07-billing](docs/images/07-cleanup-billing.png) · [`cleanup-checklist.md`](docs/cleanup-checklist.md) · 청구 예정 **USD 0.00** (사용분 $0.24 는 크레딧 차감) |
 
 증빙의 계정 ID·Access Key·내 공인 IP 뒷자리는 가렸습니다.
 

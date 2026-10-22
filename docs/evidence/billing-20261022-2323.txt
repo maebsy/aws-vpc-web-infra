@@ -1,0 +1,30 @@
+# Billing 확인 — 2026-10-22 23:23 KST (정리 후 약 23시간, 루트 콘솔 Billing and Cost Management)
+# 콘솔 화면을 옮겨 적은 기록입니다. 계정 ID 는 가렸습니다.
+
+## Bills (Billing period: October 2026, 상태 Pending)
+Account ID                      <ACCOUNT_ID>
+Service provider                Amazon Web Services Korea LLC
+Total in USD                    USD 0.00
+Estimated grand total           USD 0.00
+Highest service spend           USD 0.00 (Data Transfer)
+Highest AWS Region spend        USD 0.23 (Asia Pacific (Seoul))
+Charges by service              9 active services, total pre-tax USD 0.00
+안내 배너                       "Your free plan account does not get charged.
+                                 Credits cover your free plan costs."
+
+## Credits
+Total estimated amount used     $0.24
+Total estimated amount remaining $119.76  (발급 $120.00 = AWS Free Tier $100 + Explore AWS $20)
+AWS Free Tier credit            estimated used $0.24
+Explore AWS: Launch an instance estimated used $0.00
+
+## Free Tier
+Service offerings at or above usage limits   0 of 6
+
+## Cost Explorer (CLI: aws ce get-cost-and-usage, 같은 시각)
+2026-10-01 ~ 10-23 UnblendedCost 0 · UsageQuantity 0 (Estimated=true, 아직 집계 전)
+
+## 결론
+실습(t3.micro 기본 1대 약 12시간 + Docker 1대 약 10분, 퍼블릭 IPv4, 데이터 전송)의 사용분 약 $0.24 는
+프리 플랜 크레딧에서 차감되었고 실제 청구 예정액은 USD 0.00.
+정리 이후 새로 쌓이는 과금 항목 없음 (audit-20261022-000911.txt 와 일치).

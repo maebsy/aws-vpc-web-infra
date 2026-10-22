@@ -49,7 +49,7 @@
 
 - 📂 [`cleanup-checklist.md`](cleanup-checklist.md) (필수 8단계 + 생성 안 했지만 확인할 6종)
 - ▶️ `bash scripts/cleanup.sh` → 마지막에 `audit.sh` 가 EC2·EBS·EIP·NAT·스냅샷·VPC·IGW·SG 를 리전 전체에서 조회해 0 확인
-- 📄 [`audit-20261022-000911.txt`](evidence/audit-20261022-000911.txt) 전 항목 0 ✅ · 📸 [`07-cleanup-ec2-terminated.png`](images/07-cleanup-ec2-terminated.png), [`07-cleanup-vpc-empty.png`](images/07-cleanup-vpc-empty.png) ✅
+- 📄 [`audit-20261022-000911.txt`](evidence/audit-20261022-000911.txt) 전 항목 0 ✅ · 📸 [`07-cleanup-ec2-terminated.png`](images/07-cleanup-ec2-terminated.png), [`07-cleanup-vpc-empty.png`](images/07-cleanup-vpc-empty.png) ✅ · Billing 청구 예정 USD 0.00 [`07-cleanup-billing.png`](images/07-cleanup-billing.png) ✅
 
 ---
 
